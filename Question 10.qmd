@@ -1,0 +1,74 @@
+---
+title: "Question 10"
+format: pdf
+author: 'liz'
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+```{r}
+1 + 1
+```
+
+# #Question10
+
+#we have to first download all of the packages we will be using to make our plot
+
+#after downloading all of the packages necessary we have to have R read our file containing our data
+
+#since we want our graph to be organized based on month and not date we have to change our dates to months so that we can organize it by month and year
+
+#read the file --\> have the computer recognize the first column and let it know where you want it to start reading and where you want it to end 1:8980
+
+#have the computer recognize the columns containing the variants and the percentages since that's what we want to graph
+
+#we make a function that puts all of the variables together for R to read. In this case I labeled it df
+
+```{r}
+covid <-read.csv(file = 'covid19_variants.csv')
+
+date = covid[1]
+test_date = date[1:8980,]
+date_obj = as.Date(test_date)
+variant = covid[4]
+percentage = covid[6]
+
+df <- data.frame(date = date_obj, values = percentage, variants = variant)
+df
+```
+
+#I used lubridate and tidyverse to organize my dates to months and years. I also used it to group my data based on variant as well as the dates.
+
+#Since I will be plotting the mean of the data, I will also include a summarize mean of percentage in my function
+
+```{r}
+library(lubridate)
+library(tidyverse)
+
+final <- df %>%
+  group_by(month = lubridate::floor_date(date, "month"),variant_name) %>%
+  summarize(summary_variable = mean(percentage))
+```
+
+#I do not want other and total variant clusters to be grouped in my graph so I will be removing those groups from my data set.
+
+```{r}
+df2 <- df[- grep("Other", df$variant_name),]
+df3 <- df2[- grep("Total", df2$variant_name),]
+```
+
+#use ggplot to plot my graph. geom_line to have a linear trace, x will be my dates by month and year and y will be the percentage of sequenced specimens.
+
+#I will be plotting my variants name based on color, I want dates to be labeled as month and year and my x axis will be labeled Date and Y axis will be labeled percentage of sequenced specimens. So that my x axis isn't to cluttered I will be using element_text to adjust my dates text.
+
+```{r}
+percentage_plot <- ggplot(df3,aes(x = date, y = percentage))
+
+percentage_plot + geom_line(aes(color = variant_name)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_x_date(date_breaks = "1 month",date_labels = "%b-%Y") +
+  labs(x= "Date", y= "Percentage of sequenced specimens")
+```
+
+```{}
+```
